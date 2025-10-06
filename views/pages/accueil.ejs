@@ -49,9 +49,48 @@
                     <% } %>
                 </tbody>
             </table>
-           
-            
-
+        </div>
+        <% if (message) { %>
+            <div class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <h3><%= message %></h3>
+            </div>
+        <% } %>
+        <div class="jumbotron">
+            <h2> Supprimer un élément par ID:</h2>
+            <form id="deleteItemForm" method="POST" action="/deleteById">
+                    <input type="number" class="form-control" id="itemId" name="id" required>
+                <button type="submit" class="btn btn-danger">Supprimer</button>
+            </form>
+            <h2> Supprimer un élément par nom:</h2>
+            <form id="deleteItemForm" method="POST" action="/deleteByName">
+                    <input type="text" class="form-control" id="itemName" name="nom" required>
+                <button type="submit" class="btn btn-danger">Supprimer</button>
+            </form>
+        </div>
+        <div class="jumbotron">
+            <h2>Ajouter un item</h2>
+            <form id="addItemForm" method="POST" action="/add">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Prix</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <input type="text" class="form-control" id="itemName" name="nom" required>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control" id="itemPrice" name="prix" step="0.01" required>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button type="submit" class="btn btn-primary">Ajouter</button>
+            </form>
         </div>
     </main>
 
