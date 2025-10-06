@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<!--
+  @file accueil.ejs
+  @author Elliot Wood
+  @version 1.0
+  @date 2025-09-02
+  @brief Page d'accueil alternative utilisant EJS.
+-->
+
+<html>
+    <script src="/socket.io/socket.io.js"></script>
+<script> 
+    var socket = io.connect('http://localhost:8080');
+</script>
+
+
+<head>
+    <%- include('../partials/head') %>
+</head>
+<body class="container">
+    <header>
+        <%- include('../partials/header') %>
+    </header>
+
+    <main>
+        <div class="jumbotron">
+            <h1>Accueil</h1>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date de creation</th>
+                        <th>Nom</th>
+                        <th>Prix</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (items && items.length) { %>
+                        <% items.forEach(item => { %>
+                            <tr>
+                                <td><%= item.id %></td>
+                                <td><%= item.dateCreation %></td>
+                                <td><%= item.nom %></td>
+                                <td><%= item.prix.toFixed(2) %> $</td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr><td colspan="4">Aucun item disponible.</td></tr>
+                    <% } %>
+                </tbody>
+            </table>
+           
+            
+
+        </div>
+    </main>
+
+    <footer>
+        <%- include('../partials/footer') %>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<!--
+  @file error.ejs
+  @author Elliot Wood
+  @version 1.0
+  @date 2025-09-02
+  @brief Page d'erreur.
+-->
+<html>
+<head>
+    <title>Erreur</title>
+</head>
+<body>
+    <h1><%= message %></h1>
+    <h2><%= error.status %></h2>
+    <pre><%= error.stack %></pre>
+</body>
+</html>

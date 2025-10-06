@@ -1,0 +1,5 @@
+1-  J'ai crée listeGlobale.js car il y avait un probleme de dependance circulaire sinon, 
+    (message d'avertisement : 
+    (node:20828) Warning: Accessing non-existent property 'liste' of module exports inside circular dependency
+    (Use `node --trace-warnings ...` to show where the warning was created))
+    comme ca chaque fichier peux l'acceder au lieu d'importer en ajoutant const liste = require('../models/listeGlobale');
