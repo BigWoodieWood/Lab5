@@ -1,59 +1,91 @@
-/** 
-  * @file       index.js 
-  * @author     Elliot Wood
-  * @version    1 
-  * @date       22/09/2025 
-  * @brief      Routeur principal pour la page d'accueil
-  */ 
-var express = require('express'); 
-var router = express.Router(); 
+/**
+ * @file        index.js 
+ * @author      Elliot Wood
+ * @version     1.2
+ * @date        07/10/2025
+ * @brief       Routeur principal pour la page d'accueil + gestion MQTT + Socket.IO
+ */
+
+const express = require('express');
+const router = express.Router();
+const socket = require('../socket');
 const liste = require('../models/listeGlobale');
+const mqtt = require('mqtt');
 
-router.get('/', function(req, res, next) { 
-    let message = null;
-    res.render('pages/accueil', { title: 'Accueil', items: liste.getItems(), message });
-});
-router.post('/add', function(req, res, next) { 
-    liste.ajouterItem(req.body.nom, parseFloat(req.body.prix));
-    res.redirect('/');
+const client = mqtt.connect('mqtt://127.0.0.1:1883');
+
+client.on('connect', function () {
+    console.log("MQTT connecté !");
+    client.subscribe('ITEM/MODULE/#');
 });
 
-router.post('/deleteById', function(req, res, next) {
+
+router.get('/', function (req, res) {
+    res.render('pages/accueil', {
+        title: 'Accueil',
+        items: liste.getItems(),
+        message: null
+    });
+});
+
+
+router.post('/add', function (req, res) {
+    const nom = req.body.nom;
+    const prix = parseFloat(req.body.prix);
+
+    liste.ajouterItem(nom, prix);
+    const itemTemp = liste.getItemById(liste.getLength() - 1);
+
+    console.log("Nouvel item ajouté :", itemTemp);
+    client.publish('ITEM/WEB/NEW', JSON.stringify(itemTemp));
+
+    socket.getIO().emit('updateItems', liste.getItems());
+});
+
+
+router.post('/deleteById', function (req, res) {
     const id = parseInt(req.body.id, 10);
-    let message = null;
-    if (!id) {
-        message = "ID vide." ;
-    } else {
-        const item = liste.getItemById(id);
-        if (item) {
-            liste.removeItemById(id);
-            console.log(`Item avec ID "${id}" supprimé.`);
-        } else {
-            console.log(`Item avec ID "${id}" introuvable.`);
-            message = `Item "${id}" introuvable.` ;
-        }
+
+    if (id && liste.getItemById(id)) {
+        liste.removeItemById(id);
+        console.log(`Item avec ID "${id}" supprimé.`);
+        client.publish('ITEM/WEB/DELETE/ID', "ID:" + id);
     }
-    res.render('pages/accueil', { title: 'Accueil', items: liste.getItems(), message });
+
+    socket.getIO().emit('updateItems', liste.getItems());
 });
 
-router.post('/deleteByName', function(req, res, next) {
-    const nom = req.body.nom.trim();
-    let message = null;
 
-    if (!nom) {
-        message = "Nom vide.";
-    } else {
-        const item = liste.getItemByName(nom);
-        if (item) {
-            liste.removeItemByName(nom);
-            console.log(`Item avec nom "${nom}" supprimé.`);
-        } else {
-            console.log(`Item avec nom "${nom}" introuvable.`);
-            message = `Item "${nom}" introuvable.`;
-        }
+router.post('/deleteByName', function (req, res) {
+    const nom = req.body.nom.trim();
+
+    if (nom && liste.getItemByName(nom)) {
+        liste.removeItemByName(nom);
+        console.log(`Item "${nom}" supprimé.`);
+        client.publish('ITEM/WEB/DELETE/NAME', "Name:" + nom);
     }
 
-    res.render('pages/accueil', { title: 'Accueil', items: liste.getItems(), message });
+    socket.getIO().emit('updateItems', liste.getItems());
+
+});
+
+
+client.on('message', function (topic, message) {
+    const topicParts = topic.split('/');
+    const msgStr = message.toString();
+    if (topicParts[2] === 'NEW') {
+        const newItem = JSON.parse(msgStr);
+        liste.ajouterItem(newItem.nom, newItem.prix);
+    } else if (topicParts[2] === 'DELETE') {
+        if (topicParts[3] === 'NAME') {
+            const deletedName = msgStr.split(':')[1];
+            liste.removeItemByName(deletedName);
+        } else if (topicParts[3] === 'ID') {
+            const deletedId = parseInt(msgStr.split(':')[1], 10);
+            liste.removeItemById(deletedId);
+        }
+    }
+    socket.getIO().emit('updateItems', liste.getItems());
 });
 
 module.exports = router;
