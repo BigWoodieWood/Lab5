@@ -57,5 +57,14 @@ class ItemList {
         }
         return false;
     }
+    modifyItem(id, newNom, newPrix) {
+        const item = this.getItemById(id);
+        if (item) {
+            item.nom = newNom;
+            item.prix = newPrix;
+            return true;
+        }
+        return false;
+    }
 }
 module.exports = { ItemList: ItemList };

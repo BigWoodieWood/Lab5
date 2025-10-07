@@ -1,9 +1,18 @@
 <!DOCTYPE html>
+<!--
+  @file accueil.ejs
+  @author Elliot Wood
+  @version 1.0
+  @date 2025-09-02
+  @brief Page d'accueil alternative utilisant EJS.
+-->
+
 <html>
+    
+
+
 <head>
     <%- include('../partials/head') %>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body class="container">
     <header>
@@ -22,7 +31,7 @@
                         <th>Prix</th>
                     </tr>
                 </thead>
-                <tbody id="itemTableBody">
+                <tbody>
                     <% if (items && items.length) { %>
                         <% items.forEach(item => { %>
                             <tr>
@@ -38,72 +47,88 @@
                 </tbody>
             </table>
         </div>
-
-        <!-- Formulaires -->
+        <% if (message) { %>
+            <div class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <h3><%= message %></h3>
+            </div>
+        <% } %>
         <div class="jumbotron">
             <h2> Supprimer un élément par ID:</h2>
-            <input type="number" id="deleteId" class="form-control" placeholder="ID">
-            <button id="deleteIdBtn" class="btn btn-danger">Supprimer</button>
-
+            <form id="deleteItemForm" method="POST" action="/deleteById">
+                    <input type="number" class="form-control" id="itemId" name="id" required>
+                <button type="submit" class="btn btn-danger">Supprimer</button>
+            </form>
             <h2> Supprimer un élément par nom:</h2>
-            <input type="text" id="deleteName" class="form-control" placeholder="Nom">
-            <button id="deleteNameBtn" class="btn btn-danger">Supprimer</button>
-
-            <h2>Ajouter un item</h2>
-            <input type="text" id="addName" class="form-control" placeholder="Nom">
-            <input type="number" id="addPrice" class="form-control" step="0.01" placeholder="Prix">
-            <button id="addBtn" class="btn btn-primary">Ajouter</button>
+            <form id="deleteItemForm" method="POST" action="/deleteByName">
+                    <input type="text" class="form-control" id="itemName" name="nom" required>
+                <button type="submit" class="btn btn-danger">Supprimer</button>
+            </form>
         </div>
+        <div class="jumbotron">
+            <h2>Ajouter un item</h2>
+            <form id="addItemForm" method="POST" action="/add">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Prix</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <input type="text" class="form-control" id="itemName" name="nom" required>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control" id="itemPrice" name="prix" step="0.01" required>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button type="submit" class="btn btn-primary">Ajouter</button>
+            </form>
+        </div>
+        <div class="jumbotron">
+            <h2>Modifier un item:</h2>
+            <form id="modifyItemForm" method="POST" action="/modify">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID de l'item à modifier</th>
+                            <th>Nouveau nom</th>
+                            <th>Nouveau prix</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <input type="number" class="form-control" id="itemId" name="id" required>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control" id="itemName" name="nom" required>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control" id="itemPrice" name="prix" step="0.01" required>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button type="submit" class="btn btn-info">Modifier</button>
+            </form>
+        <script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();  
+    socket.on('updateItems', (items) => {
+        console.log("Liste mise à jour via Socket.IO", items);
+        location.reload();  
+    });
+</script>
     </main>
+    
 
     <footer>
         <%- include('../partials/footer') %>
     </footer>
-
-    <script>
-        const socket = io();
-
-        // Mise à jour dynamique du tableau
-        socket.on('updateItems', function(items) {
-            const $tbody = $("#itemTableBody");
-            $tbody.empty();
-            if(items.length === 0){
-                $tbody.append('<tr><td colspan="4">Aucun item disponible.</td></tr>');
-            } else {
-                $.each(items, function(i, item){
-                    $tbody.append(`
-                        <tr>
-                            <td>${item.id}</td>
-                            <td>${item.dateCreation}</td>
-                            <td>${item.nom}</td>
-                            <td>${item.prix.toFixed(2)} $</td>
-                        </tr>
-                    `);
-                });
-            }
-        });
-
-        // Ajout d'un item
-        $("#addBtn").click(function(){
-            const nom = $("#addName").val();
-            const prix = parseFloat($("#addPrice").val());
-            $.post("/add", { nom, prix });
-            $("#addName").val(""); $("#addPrice").val("");
-        });
-
-        // Supprimer par ID
-        $("#deleteIdBtn").click(function(){
-            const id = parseInt($("#deleteId").val());
-            $.post("/deleteById", { id });
-            $("#deleteId").val("");
-        });
-
-        // Supprimer par nom
-        $("#deleteNameBtn").click(function(){
-            const nom = $("#deleteName").val();
-            $.post("/deleteByName", { nom });
-            $("#deleteName").val("");
-        });
-    </script>
 </body>
 </html>
