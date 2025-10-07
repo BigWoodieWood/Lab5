@@ -1,3 +1,11 @@
+/* 
+  @file itemlist.js
+  @author Elliot Wood
+  @version 1.0
+  @date 2025-09-02
+  @brief Liste des items.
+*/
+
 class Item {
 
     constructor(id, nom, prix) {

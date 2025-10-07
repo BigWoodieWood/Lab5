@@ -1,3 +1,10 @@
+/* 
+  @file listeGlobale.js
+  @author Elliot Wood
+  @version 1.0
+  @date 2025-09-02
+  @brief Liste globale des items.
+*/
 const { ItemList } = require('./itemlist');
 const liste = new ItemList();
 
